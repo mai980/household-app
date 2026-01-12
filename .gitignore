@@ -1,0 +1,15 @@
+# Secrets (DO NOT COMMIT)
+.streamlit/secrets.toml
+
+# Database
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.env
+venv/
+.venv/
