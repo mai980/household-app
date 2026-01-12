@@ -8,7 +8,7 @@ from pathlib import Path
 APP_DIR = Path(__file__).parent
 
 # ユーザー名設定（必要に応じて変更してください）
-USERS = ["パートナーA", "パートナーB"]
+USERS = ["たう", "萌伽"]
 
 # カテゴリ設定
 CATEGORIES = [
@@ -26,4 +26,4 @@ CATEGORIES = [
 ]
 
 # データベースファイルパス（アプリと同じディレクトリに保存）
-DATABASE_PATH = APP_DIR / "expenses.db"
+# DATABASE_PATH = APP_DIR / "expenses.db"
