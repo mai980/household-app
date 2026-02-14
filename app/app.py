@@ -16,7 +16,12 @@ from flask import (
     url_for,
     flash,
 )
-from models import db, Transaction, USERS, CATEGORIES, PAYMENT_TYPES
+try:
+    # Gunicorn (パッケージとしてインポート: app.app)
+    from app.models import db, Transaction, USERS, CATEGORIES, PAYMENT_TYPES
+except ImportError:
+    # ローカル実行 (python app/app.py)
+    from models import db, Transaction, USERS, CATEGORIES, PAYMENT_TYPES
 
 
 # ========================================
