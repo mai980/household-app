@@ -37,7 +37,7 @@ def _migrate_add_settled_column(app):
             columns = [col["name"] for col in inspector.get_columns("transactions")]
             if "settled" not in columns:
                 conn.execute(text(
-                    "ALTER TABLE transactions ADD COLUMN settled BOOLEAN NOT NULL DEFAULT 0"
+                    "ALTER TABLE transactions ADD COLUMN settled BOOLEAN NOT NULL DEFAULT FALSE"
                 ))
                 conn.commit()
                 app.logger.info("Migration: settled カラムを追加しました。")
