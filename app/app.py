@@ -25,6 +25,27 @@ except ImportError:
 
 
 # ========================================
+# マイグレーションヘルパー
+# ========================================
+
+def _migrate_add_settled_column(app):
+    """既存DBに settled カラムがなければ追加する (簡易マイグレーション)"""
+    try:
+        from sqlalchemy import text, inspect
+        with db.engine.connect() as conn:
+            inspector = inspect(db.engine)
+            columns = [col["name"] for col in inspector.get_columns("transactions")]
+            if "settled" not in columns:
+                conn.execute(text(
+                    "ALTER TABLE transactions ADD COLUMN settled BOOLEAN NOT NULL DEFAULT 0"
+                ))
+                conn.commit()
+                app.logger.info("Migration: settled カラムを追加しました。")
+    except Exception as e:
+        app.logger.warning(f"Migration check skipped: {e}")
+
+
+# ========================================
 # アプリケーション生成
 # ========================================
 
@@ -55,6 +76,8 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
+        # マイグレーション: 既存DBに settled カラムがない場合は追加
+        _migrate_add_settled_column(app)
 
     # --- テンプレートにグローバル変数を渡す ---
     @app.context_processor
@@ -158,6 +181,18 @@ def create_app():
         flash("支出を削除しました。", "info")
         return redirect(url_for("history"))
 
+    @app.route("/settle/<int:txn_id>", methods=["POST"])
+    def toggle_settle(txn_id):
+        """清算済み/未清算を切り替え"""
+        txn = Transaction.query.get_or_404(txn_id)
+        txn.settled = not txn.settled
+        db.session.commit()
+        if txn.settled:
+            flash("清算済みにしました。", "success")
+        else:
+            flash("未清算に戻しました。", "info")
+        return redirect(request.referrer or url_for("history"))
+
     @app.route("/history")
     def history():
         """全履歴一覧"""
@@ -187,7 +222,8 @@ def create_app():
         balance == 0 → 清算不要
         """
         user_a, user_b = USERS[0], USERS[1]
-        transactions = Transaction.query.all()
+        # 清算済みの取引は除外
+        transactions = Transaction.query.filter_by(settled=False).all()
 
         # A が B のために払った額 (A が payer で payment_type='partner')
         a_paid_for_b = sum(

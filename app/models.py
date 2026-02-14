@@ -50,6 +50,7 @@ class Transaction(db.Model):
     payer = db.Column(db.String(50), nullable=False)  # 支払った人
     category = db.Column(db.String(50), nullable=False, default="other")
     payment_type = db.Column(db.String(20), nullable=False, default="split")
+    settled = db.Column(db.Boolean, nullable=False, default=False)  # 清算済みフラグ
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now()

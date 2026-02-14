@@ -9,17 +9,21 @@
 {% if pagination.items %}
 <div class="list-group mb-4">
   {% for txn in pagination.items %}
-  <div class="list-group-item history-item">
+  <div class="list-group-item history-item {% if txn.settled %}settled-item{% endif %}">
     <div class="d-flex justify-content-between align-items-start">
       <div class="flex-grow-1">
         <div class="d-flex align-items-center mb-1">
-          <strong class="me-2">{{ txn.title }}</strong>
+          <strong class="me-2 {% if txn.settled %}text-decoration-line-through text-muted{% endif %}">{{ txn.title
+            }}</strong>
           <span class="badge
                         {% if txn.payment_type == 'split' %}bg-primary
                         {% elif txn.payment_type == 'partner' %}bg-warning text-dark
                         {% else %}bg-secondary{% endif %}">
             {{ txn.payment_type_label }}
           </span>
+          {% if txn.settled %}
+          <span class="badge bg-success ms-1"><i class="bi bi-check-lg"></i> 清算済</span>
+          {% endif %}
         </div>
         <small class="text-muted">
           <i class="bi bi-calendar3"></i> {{ txn.date.strftime('%Y/%m/%d') }}
@@ -28,8 +32,16 @@
         </small>
       </div>
       <div class="text-end">
-        <div class="fw-bold fs-5 mb-1">¥{{ "{:,}".format(txn.amount) }}</div>
+        <div class="fw-bold fs-5 mb-1 {% if txn.settled %}text-muted text-decoration-line-through{% endif %}">¥{{
+          "{:,}".format(txn.amount) }}</div>
         <div class="btn-group btn-group-sm">
+          <form method="POST" action="{{ url_for('toggle_settle', txn_id=txn.id) }}" class="d-inline">
+            <button type="submit"
+              class="btn {% if txn.settled %}btn-outline-secondary{% else %}btn-outline-success{% endif %}"
+              title="{% if txn.settled %}未清算に戻す{% else %}清算済みにする{% endif %}">
+              <i class="bi {% if txn.settled %}bi-arrow-counterclockwise{% else %}bi-check-lg{% endif %}"></i>
+            </button>
+          </form>
           <a href="{{ url_for('edit_transaction', txn_id=txn.id) }}" class="btn btn-outline-primary" title="編集">
             <i class="bi bi-pencil"></i>
           </a>

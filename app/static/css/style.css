@@ -218,6 +218,27 @@ body {
     background: rgba(255, 255, 255, 0.03);
 }
 
+/* --- 清算済みアイテム --- */
+.settled-item {
+    opacity: 0.55;
+    background: rgba(16, 185, 129, 0.04);
+}
+
+.settled-item:hover {
+    opacity: 0.8;
+}
+
+.btn-outline-success {
+    border-color: rgba(16, 185, 129, 0.5);
+    color: var(--success);
+}
+
+.btn-outline-success:hover {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
 /* --- バッジ --- */
 .badge {
     font-weight: 500;
@@ -302,7 +323,7 @@ body {
     background: transparent;
 }
 
-.payment-type-option .form-check-input:checked + .form-check-label {
+.payment-type-option .form-check-input:checked+.form-check-label {
     background: var(--primary);
     border-color: var(--primary);
     color: white;
@@ -463,16 +484,38 @@ footer {
 }
 
 /* --- テキストユーティリティ --- */
-.text-positive { color: var(--positive-color) !important; }
-.text-negative { color: var(--negative-color) !important; }
+.text-positive {
+    color: var(--positive-color) !important;
+}
 
-.text-primary { color: var(--positive-color) !important; }
-.text-info    { color: var(--accent) !important; }
-.text-muted   { color: var(--text-secondary) !important; }
+.text-negative {
+    color: var(--negative-color) !important;
+}
 
-.bg-primary   { background-color: var(--primary) !important; }
-.bg-warning   { background-color: var(--warning) !important; }
-.bg-secondary { background-color: rgba(148, 163, 184, 0.2) !important; color: var(--text-secondary) !important; }
+.text-primary {
+    color: var(--positive-color) !important;
+}
+
+.text-info {
+    color: var(--accent) !important;
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+.bg-warning {
+    background-color: var(--warning) !important;
+}
+
+.bg-secondary {
+    background-color: rgba(148, 163, 184, 0.2) !important;
+    color: var(--text-secondary) !important;
+}
 
 /* --- アニメーション --- */
 @keyframes fadeInUp {
@@ -480,13 +523,16 @@ footer {
         opacity: 0;
         transform: translateY(16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.card, .list-group-item, .alert {
+.card,
+.list-group-item,
+.alert {
     animation: fadeInUp 0.4s ease forwards;
 }
 
