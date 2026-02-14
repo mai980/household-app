@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}ダッシュボード — カップル家計簿{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+  <i class="bi bi-speedometer2"></i> ダッシュボード
+</h1>
+
+<!-- ==============================
+     清算カード
+     ============================== -->
+<div class="card balance-card mb-4
+     {% if balance.value > 0 %}balance-positive
+     {% elif balance.value < 0 %}balance-negative
+     {% else %}balance-zero{% endif %}">
+  <div class="card-body text-center">
+    <h5 class="card-subtitle mb-2">現在の清算状況</h5>
+
+    {% if balance.value > 0 %}
+    <div class="balance-amount">
+      <i class="bi bi-arrow-right-circle"></i>
+      ¥{{ "{:,}".format(balance.abs_value) }}
+    </div>
+    <p class="balance-description">
+      <strong>{{ balance.user_b }}</strong> さんが
+      <strong>{{ balance.user_a }}</strong> さんに支払う必要があります
+    </p>
+    {% elif balance.value < 0 %} <div class="balance-amount">
+      <i class="bi bi-arrow-right-circle"></i>
+      ¥{{ "{:,}".format(balance.abs_value) }}
+  </div>
+  <p class="balance-description">
+    <strong>{{ balance.user_a }}</strong> さんが
+    <strong>{{ balance.user_b }}</strong> さんに支払う必要があります
+  </p>
+  {% else %}
+  <div class="balance-amount">
+    <i class="bi bi-check-circle"></i> ¥0
+  </div>
+  <p class="balance-description">清算不要です 🎉</p>
+  {% endif %}
+</div>
+</div>
+
+<!-- ==============================
+     内訳カード
+     ============================== -->
+<div class="row g-3 mb-4">
+  <div class="col-6">
+    <div class="card stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">{{ balance.user_a }} の立替</div>
+        <div class="stat-value text-primary">
+          ¥{{ "{:,}".format(balance.a_total) }}
+        </div>
+        <small class="text-muted">
+          相手用 ¥{{ "{:,}".format(balance.a_paid_for_b) }}<br>
+          割勘半額 ¥{{ "{:,}".format(balance.a_split_half) }}
+        </small>
+      </div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="card stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">{{ balance.user_b }} の立替</div>
+        <div class="stat-value text-info">
+          ¥{{ "{:,}".format(balance.b_total) }}
+        </div>
+        <small class="text-muted">
+          相手用 ¥{{ "{:,}".format(balance.b_paid_for_a) }}<br>
+          割勘半額 ¥{{ "{:,}".format(balance.b_split_half) }}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     今月サマリ & カテゴリ別
+     ============================== -->
+<div class="row g-3 mb-4">
+  <!-- 今月サマリ -->
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-calendar3"></i> {{ monthly_summary.month }} の支出
+      </div>
+      <div class="card-body text-center">
+        <div class="stat-value">
+          ¥{{ "{:,}".format(monthly_summary.total) }}
+        </div>
+        <small class="text-muted">{{ monthly_summary.count }} 件</small>
+      </div>
+    </div>
+  </div>
+  <!-- カテゴリ別 -->
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-pie-chart"></i> カテゴリ別支出
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for label, amount in category_summary[:5] %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ label }}
+          <span class="badge bg-primary rounded-pill">¥{{ "{:,}".format(amount) }}</span>
+        </li>
+        {% endfor %}
+        {% if not category_summary %}
+        <li class="list-group-item text-muted text-center">データなし</li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     直近の取引
+     ============================== -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-clock-history"></i> 直近の取引</span>
+    <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-primary">
+      すべて見る <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <div class="list-group list-group-flush">
+    {% for txn in recent %}
+    <div class="list-group-item">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong>{{ txn.title }}</strong>
+          <span class="badge bg-secondary ms-1">{{ txn.payment_type_label }}</span>
+          <br>
+          <small class="text-muted">
+            {{ txn.date.strftime('%m/%d') }} · {{ txn.category_label }} · {{ txn.payer }}
+          </small>
+        </div>
+        <span class="fw-bold">¥{{ "{:,}".format(txn.amount) }}</span>
+      </div>
+    </div>
+    {% endfor %}
+    {% if not recent %}
+    <div class="list-group-item text-muted text-center py-4">
+      まだ取引がありません。
+      <a href="{{ url_for('add_transaction') }}">最初の支出を登録しましょう！</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- クイック登録ボタン (FAB) -->
+<a href="{{ url_for('add_transaction') }}" class="fab-button" title="支出を登録">
+  <i class="bi bi-plus-lg"></i>
+</a>
+{% endblock %}

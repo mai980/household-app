@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}支出編集 — カップル家計簿{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+  <i class="bi bi-pencil-square"></i> 支出編集
+</h1>
+
+<div class="card form-card">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('edit_transaction', txn_id=txn.id) }}">
+      <!-- 日付 -->
+      <div class="mb-3">
+        <label for="date" class="form-label">
+          <i class="bi bi-calendar3"></i> 日付
+        </label>
+        <input type="date" class="form-control form-control-lg" id="date" name="date" value="{{ txn.date.isoformat() }}"
+          required>
+      </div>
+
+      <!-- 品目 -->
+      <div class="mb-3">
+        <label for="title" class="form-label">
+          <i class="bi bi-tag"></i> 品目
+        </label>
+        <input type="text" class="form-control form-control-lg" id="title" name="title" value="{{ txn.title }}"
+          required>
+      </div>
+
+      <!-- 金額 -->
+      <div class="mb-3">
+        <label for="amount" class="form-label">
+          <i class="bi bi-currency-yen"></i> 金額
+        </label>
+        <input type="number" class="form-control form-control-lg" id="amount" name="amount" value="{{ txn.amount }}"
+          min="1" required>
+      </div>
+
+      <!-- 支払った人 -->
+      <div class="mb-3">
+        <label for="payer" class="form-label">
+          <i class="bi bi-person"></i> 支払った人
+        </label>
+        <select class="form-select form-select-lg" id="payer" name="payer" required>
+          {% for user in users %}
+          <option value="{{ user }}" {% if txn.payer==user %}selected{% endif %}>
+            {{ user }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- カテゴリ -->
+      <div class="mb-3">
+        <label for="category" class="form-label">
+          <i class="bi bi-grid"></i> カテゴリ
+        </label>
+        <select class="form-select form-select-lg" id="category" name="category" required>
+          {% for key, label in categories %}
+          <option value="{{ key }}" {% if txn.category==key %}selected{% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- 支払いの種類 -->
+      <div class="mb-4">
+        <label class="form-label">
+          <i class="bi bi-arrows-angle-expand"></i> 支払いの種類
+        </label>
+        <div class="payment-type-group">
+          {% for key, label in payment_types %}
+          <div class="form-check form-check-inline payment-type-option">
+            <input class="form-check-input" type="radio" name="payment_type" id="type_{{ key }}" value="{{ key }}" {% if
+              txn.payment_type==key %}checked{% endif %}>
+            <label class="form-check-label btn btn-outline-secondary" for="type_{{ key }}">
+              {% if key == 'self' %}🙋 {{ label }}
+              {% elif key == 'partner' %}🤝 {{ label }}
+              {% else %}➗ {{ label }}{% endif %}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 送信ボタン -->
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-success btn-lg">
+          <i class="bi bi-check-lg"></i> 更新する
+        </button>
+        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-lg">
+          <i class="bi bi-x-lg"></i> キャンセル
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

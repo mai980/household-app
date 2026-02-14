@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}履歴一覧 — カップル家計簿{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+  <i class="bi bi-clock-history"></i> 履歴一覧
+</h1>
+
+{% if pagination.items %}
+<div class="list-group mb-4">
+  {% for txn in pagination.items %}
+  <div class="list-group-item history-item">
+    <div class="d-flex justify-content-between align-items-start">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center mb-1">
+          <strong class="me-2">{{ txn.title }}</strong>
+          <span class="badge
+                        {% if txn.payment_type == 'split' %}bg-primary
+                        {% elif txn.payment_type == 'partner' %}bg-warning text-dark
+                        {% else %}bg-secondary{% endif %}">
+            {{ txn.payment_type_label }}
+          </span>
+        </div>
+        <small class="text-muted">
+          <i class="bi bi-calendar3"></i> {{ txn.date.strftime('%Y/%m/%d') }}
+          · {{ txn.category_label }}
+          · <i class="bi bi-person"></i> {{ txn.payer }}
+        </small>
+      </div>
+      <div class="text-end">
+        <div class="fw-bold fs-5 mb-1">¥{{ "{:,}".format(txn.amount) }}</div>
+        <div class="btn-group btn-group-sm">
+          <a href="{{ url_for('edit_transaction', txn_id=txn.id) }}" class="btn btn-outline-primary" title="編集">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <button type="button" class="btn btn-outline-danger" title="削除" data-bs-toggle="modal"
+            data-bs-target="#deleteModal" data-txn-id="{{ txn.id }}" data-txn-title="{{ txn.title }}"
+            data-txn-amount="{{ '{:,}'.format(txn.amount) }}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ページネーション -->
+{% if pagination.pages > 1 %}
+<nav aria-label="ページナビゲーション">
+  <ul class="pagination justify-content-center">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('history', page=pagination.prev_num) }}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+    </li>
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+    {% if p %}
+    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+      <a class="page-link" href="{{ url_for('history', page=p) }}">{{ p }}</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link">…</span></li>
+    {% endif %}
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('history', page=pagination.next_num) }}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+  <i class="bi bi-inbox display-1 text-muted"></i>
+  <p class="mt-3 text-muted">まだ取引がありません。</p>
+  <a href="{{ url_for('add_transaction') }}" class="btn btn-primary btn-lg">
+    <i class="bi bi-plus-circle"></i> 最初の支出を登録する
+  </a>
+</div>
+{% endif %}
+
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle"></i> 削除確認
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>以下の支出を削除してもよろしいですか？</p>
+        <div class="card bg-light">
+          <div class="card-body">
+            <strong id="deleteTitle"></strong><br>
+            <span class="text-muted">金額: </span>
+            <strong>¥<span id="deleteAmount"></span></strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          キャンセル
+        </button>
+        <form id="deleteForm" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> 削除する
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- クイック登録ボタン (FAB) -->
+<a href="{{ url_for('add_transaction') }}" class="fab-button" title="支出を登録">
+  <i class="bi bi-plus-lg"></i>
+</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // 削除モーダルにデータを渡す
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+      deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const txnId = button.getAttribute('data-txn-id');
+        const txnTitle = button.getAttribute('data-txn-title');
+        const txnAmount = button.getAttribute('data-txn-amount');
+
+        document.getElementById('deleteTitle').textContent = txnTitle;
+        document.getElementById('deleteAmount').textContent = txnAmount;
+        document.getElementById('deleteForm').action = '/delete/' + txnId;
+      });
+    }
+  });
+</script>
+{% endblock %}
