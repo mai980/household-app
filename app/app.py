@@ -34,11 +34,20 @@ def create_app():
 
     # --- 設定 ---
     basedir = os.path.abspath(os.path.dirname(__file__))
-    instance_dir = os.path.join(basedir, "instance")
-    os.makedirs(instance_dir, exist_ok=True)
 
-    db_path = os.path.join(instance_dir, "household.db")
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    # DATABASE_URL 環境変数があれば PostgreSQL、なければ SQLite (ローカル開発用)
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        # Render/Heroku は postgres:// を返すが、SQLAlchemy は postgresql:// が必要
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        instance_dir = os.path.join(basedir, "instance")
+        os.makedirs(instance_dir, exist_ok=True)
+        db_path = os.path.join(instance_dir, "household.db")
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 
